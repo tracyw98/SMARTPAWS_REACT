@@ -1,54 +1,66 @@
-// src/screens/HomeScreen.tsx (or ./screens/HomeScreen.tsx depending on your structure)
 import React, {useEffect, useState} from 'react';
-import {View, StyleSheet, Text} from 'react-native';
+import {View, Text, StyleSheet, SafeAreaView, Platform} from 'react-native';
 import {
   Camera,
-  useCameraDevices,
+  useCameraDevice,
   useCameraPermission,
 } from 'react-native-vision-camera';
 
 const HomeScreen = () => {
   const {hasPermission, requestPermission} = useCameraPermission();
-  const devices = useCameraDevices();
-  const device = devices.back;
-
+  const device = useCameraDevice('back');
   const [permissionChecked, setPermissionChecked] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const status = await requestPermission();
+      const permission = await requestPermission();
       setPermissionChecked(true);
     })();
   }, []);
 
-  if (!hasPermission && permissionChecked) {
+  if (!permissionChecked) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.text}>Camera permission denied.</Text>
-      </View>
+      <SafeAreaView style={styles.centered}>
+        <Text style={styles.text}>Requesting camera permission...</Text>
+      </SafeAreaView>
     );
   }
 
-  if (!device) {
+  if (!hasPermission) {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={styles.centered}>
+        <Text style={styles.text}>Camera permission denied</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (device == null) {
+    return (
+      <SafeAreaView style={styles.centered}>
         <Text style={styles.text}>Loading camera...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <Camera style={StyleSheet.absoluteFill} device={device} isActive={true} />
+    <View style={styles.container}>
+      <Camera style={StyleSheet.absoluteFill} device={device} isActive={true} />
+    </View>
   );
 };
 
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
   centered: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
     backgroundColor: '#000',
   },
   text: {
